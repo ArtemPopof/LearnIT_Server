@@ -30,3 +30,5 @@ out/
 
 ### VS Code ###
 .vscode/
+/server/src/main/resources/learnit.p12
+/server/src/main/resources/ssl.properties
