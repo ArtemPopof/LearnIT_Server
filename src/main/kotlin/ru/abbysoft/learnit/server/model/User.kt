@@ -1,19 +1,20 @@
 package ru.abbysoft.learnit.server.model
 
 import java.sql.Timestamp
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
+import javax.persistence.*
 
 @Entity
+@Table(name = "account")
 data class User(
         @Id
         @GeneratedValue(strategy= GenerationType.AUTO)
         var id: Long = -1,
 
-        val name: String,
-        val email: String,
-        val password: String,
-        val creationDate: Timestamp
+        var name: String,
+        var email: String,
+        var password: String,
+        var creationDate: Timestamp,
+        @OneToMany(fetch = FetchType.LAZY)
+        @JoinColumn(name = "code_task_id")
+        var completedTasks: Set<CodeTask>
 )

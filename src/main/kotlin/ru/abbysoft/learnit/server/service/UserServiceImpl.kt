@@ -1,31 +1,38 @@
 package ru.abbysoft.learnit.server.service
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import ru.abbysoft.learnit.server.exception.ServerException
+import ru.abbysoft.learnit.server.exception.ValidationException
 import ru.abbysoft.learnit.server.model.User
 import ru.abbysoft.learnit.server.repository.UserRepository
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class UserServiceImpl(private val userRepository: UserRepository) : UserService {
 
+    @Autowired
+    private lateinit var encoder: PasswordEncoder
+
     override fun register(user: String, password: String, email: String) {
         if (userExist(user)) {
-            throw ServerException("Такой пользователь уже существует")
+            throw ValidationException("Такой пользователь уже существует", "user")
         }
         if (emailOccupied(email)) {
-            throw ServerException("Пользователь с таким email уже существует")
+            throw ValidationException("Пользователь с таким email уже существует", "email")
         }
         if (passwordTooEasy(password)) {
-            throw ServerException("Пароль слишком простой. Длина пароля должна быть 8 и более символов.")
+            throw ValidationException("Пароль слишком простой. Длина пароля должна быть 8 и более символов", "password")
         }
 
         registerNewUser(user, password, email);
     }
 
     private fun registerNewUser(user: String, password: String, email: String) {
-        val userEntity = User(-1L, user, email, password, Timestamp.valueOf(LocalDateTime.now()))
+        val userEntity = User(-1L, user, email, encoder.encode(password), Timestamp.valueOf(LocalDateTime.now()), Collections.emptySet())
 
         userRepository.save(userEntity)
 
@@ -33,8 +40,7 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
     }
 
     private fun userExist(user: String): Boolean {
-        val userEntity = userRepository.findByName(user)
-        return userEntity != null
+        return userRepository.existsByName(user)
     }
 
     private fun emailOccupied(email: String): Boolean {
