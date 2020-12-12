@@ -5,17 +5,23 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import ru.abbysoft.learnit.server.exception.ServerException
 import ru.abbysoft.learnit.server.exception.ValidationException
+import ru.abbysoft.learnit.server.model.EUserRole
 import ru.abbysoft.learnit.server.model.User
+import ru.abbysoft.learnit.server.model.UserRole
 import ru.abbysoft.learnit.server.repository.UserRepository
+import ru.abbysoft.learnit.server.repository.UserRoleRepository
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
 class UserServiceImpl(private val userRepository: UserRepository) : UserService {
 
     @Autowired
     private lateinit var encoder: PasswordEncoder
+    @Autowired
+    private lateinit var rolesRepository: UserRoleRepository
 
     override fun register(user: String, password: String, email: String) {
         if (userExist(user)) {
@@ -32,7 +38,9 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
     }
 
     private fun registerNewUser(user: String, password: String, email: String) {
-        val userEntity = User(-1L, user, email, encoder.encode(password), Timestamp.valueOf(LocalDateTime.now()), Collections.emptySet())
+        val userEntity = User(-1L, user, email, encoder.encode(password), Timestamp.valueOf(LocalDateTime.now()), Collections.emptySet()).apply {
+            roles.plus(rolesRepository.findByRole(EUserRole.BASIC).get())
+        }
 
         userRepository.save(userEntity)
 

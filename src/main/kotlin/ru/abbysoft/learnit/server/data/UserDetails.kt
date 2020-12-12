@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import ru.abbysoft.learnit.server.model.User
-import java.util.*
+import java.util.stream.Collectors
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+
+
 
 class UserDetailsImpl(val id: Long,
                       private val name: String,
@@ -15,7 +18,10 @@ class UserDetailsImpl(val id: Long,
 
     companion object {
         fun build(info: User): UserDetailsImpl {
-            return UserDetailsImpl(info.id, info.name, info.password, info.email, Collections.emptyList())
+            val authorities = info.roles.stream()
+                    .map { role -> SimpleGrantedAuthority(role.role.name) }
+                    .collect(Collectors.toList())
+            return UserDetailsImpl(info.id, info.name, info.password, info.email, authorities)
         }
     }
 

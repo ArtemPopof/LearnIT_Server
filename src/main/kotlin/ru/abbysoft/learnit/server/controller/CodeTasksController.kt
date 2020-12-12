@@ -42,6 +42,7 @@ class CodeTasksController {
 
     @PostMapping("save")
     @ResponseBody
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun save(@RequestBody codeTask: CodeTask): ResponseEntity<Any> {
         log.info("Saving task $codeTask")
         codeTasksRepository.save(codeTask)
