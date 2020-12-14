@@ -42,6 +42,7 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
 
         val newRoles = userInfo.roles.plus(rolesRepository.findByRole(EUserRole.BASIC).get())
         userInfo.roles = newRoles
+        userInfo.confirmation = "confirmed"
         userRepository.save(userInfo)
 
         log.info("Account ${userInfo.name} confirmed")

@@ -13,11 +13,13 @@ import org.springframework.web.multipart.MultipartFile
 import ru.abbysoft.learnit.server.data.UserDetailsImpl
 import ru.abbysoft.learnit.server.model.CodeTask
 import ru.abbysoft.learnit.server.model.TaskResultUploadRequest
+import ru.abbysoft.learnit.server.model.User
 import ru.abbysoft.learnit.server.repository.CodeTasksRepository
 import ru.abbysoft.learnit.server.repository.UserRepository
 import ru.abbysoft.learnit.server.util.getUserNameFromAuthorization
 import java.io.File
 import java.io.FileOutputStream
+import java.rmi.ServerException
 import java.util.*
 import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
@@ -70,10 +72,14 @@ class CodeTasksController {
     fun submitTask(@RequestBody request: TaskResultUploadRequest): ResponseEntity<Any> {
         log.info("Submiting task result ${request.fileName}")
 
+        val userName = getUserNameFromAuthorization()
+        val user = userRepository.findByName(userName).get()
+
+        validateChecks(user)
+
         val trimmed = request.base64.split("base64")[1].substring(1)
         val decoded = Base64.decode(trimmed)
 
-        val userName = getUserNameFromAuthorization()
         val file = File("tasks/$userName/${request.taskId}" + "__" + request.fileName)
         file.parentFile.mkdirs()
         file.createNewFile()
@@ -82,11 +88,15 @@ class CodeTasksController {
             it.write(decoded)
         }
 
-        val user = userRepository.findByName(userName)
-        user.get().completedTasks = user.get().completedTasks + ";" + request.taskId
-        userRepository.save(user.get())
+        user.completedTasks = user.completedTasks + ";" + request.taskId
+        user.checks = user.checks - 1
+        userRepository.save(user)
 
         return ResponseEntity.ok("saved")
+    }
+
+    private fun validateChecks(user: User) {
+        if (user.checks <= 0) throw ServerException("no paid checks left")
     }
 
     private fun createTasksDirIfNotExist() {

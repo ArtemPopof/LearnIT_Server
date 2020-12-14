@@ -42,6 +42,12 @@ class UserController(@Autowired private val userService: UserService) {
 
         val details = authentication.principal as UserDetailsImpl
         val fullInfo = userRepository.findByName(details.username).get()
+
+        if (fullInfo.confirmation != "confirmed") {
+            log.info("[ERROR] account not confirmed")
+            return ResponseEntity.badRequest().body(ApiResponse("NOT_CONFIRMED", ""))
+        }
+
         return ResponseEntity.ok(JwtResponse(jwtString, details.id, details.username, details.getEmail(), fullInfo.checks))
     }
 
