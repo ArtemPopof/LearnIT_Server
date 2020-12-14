@@ -38,9 +38,8 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
     }
 
     private fun registerNewUser(user: String, password: String, email: String) {
-        val userEntity = User(-1L, user, email, encoder.encode(password), Timestamp.valueOf(LocalDateTime.now()), Collections.emptySet()).apply {
-            roles.plus(rolesRepository.findByRole(EUserRole.BASIC).get())
-        }
+        val userEntity = User(-1L, user, email, encoder.encode(password), Timestamp.valueOf(LocalDateTime.now()), "")
+        userEntity.roles = userEntity.roles.plus(rolesRepository.findByRole(EUserRole.BASIC).get())
 
         userRepository.save(userEntity)
 

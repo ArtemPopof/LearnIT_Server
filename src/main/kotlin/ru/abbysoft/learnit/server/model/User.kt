@@ -14,11 +14,9 @@ data class User(
         var email: String,
         var password: String,
         var creationDate: Timestamp,
-        @OneToMany(fetch = FetchType.LAZY)
-        @JoinColumn(name = "code_task_id")
-        var completedTasks: Set<CodeTask>,
+        var completedTasks: String,
 
-        @ManyToMany(fetch = FetchType.EAGER)
+        @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.PERSIST])
         @JoinTable(	name = "account_roles",
                 joinColumns = [JoinColumn(name = "account_id")],
                 inverseJoinColumns = [JoinColumn(name = "role_id")])
