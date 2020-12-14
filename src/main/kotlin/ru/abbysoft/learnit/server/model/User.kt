@@ -1,7 +1,9 @@
 package ru.abbysoft.learnit.server.model
 
 import java.sql.Timestamp
+import java.util.*
 import javax.persistence.*
+import kotlin.collections.HashSet
 
 @Entity
 @Table(name = "account")
@@ -15,10 +17,12 @@ data class User(
         var password: String,
         var creationDate: Timestamp,
         var completedTasks: String,
+        var checks: Int,
 
         @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.PERSIST])
         @JoinTable(	name = "account_roles",
                 joinColumns = [JoinColumn(name = "account_id")],
                 inverseJoinColumns = [JoinColumn(name = "role_id")])
-        var roles: Set<UserRole> = HashSet()
+        var roles: Set<UserRole> = HashSet(),
+        var confirmation: String = UUID.randomUUID().toString()
 )

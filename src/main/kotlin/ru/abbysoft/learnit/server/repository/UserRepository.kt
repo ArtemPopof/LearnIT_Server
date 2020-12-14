@@ -11,9 +11,9 @@ interface UserRepository : CrudRepository<User, Long> {
     fun findByName(user: String): Optional<User>
 
     @Query("SELECT user FROM User user WHERE user.email = ?1")
-    fun findByEmail(email: String): User?
+    fun findByEmail(email: String): Optional<User>
 
     fun existsByName(username: String): Boolean
 
-    fun existsByEmail(email: String): Boolean?
+    fun existsByEmail(email: String): Boolean
 }

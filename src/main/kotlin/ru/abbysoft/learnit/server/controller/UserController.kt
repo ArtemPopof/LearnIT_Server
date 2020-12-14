@@ -1,5 +1,6 @@
 package ru.abbysoft.learnit.server.controller
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
@@ -9,7 +10,9 @@ import org.springframework.web.bind.annotation.*
 import ru.abbysoft.learnit.server.data.*
 import ru.abbysoft.learnit.server.exception.ServerException
 import ru.abbysoft.learnit.server.exception.ValidationException
+import ru.abbysoft.learnit.server.repository.UserRepository
 import ru.abbysoft.learnit.server.service.UserService
+import ru.abbysoft.learnit.server.service.UserServiceImpl
 import ru.abbysoft.learnit.server.util.JwtUtils
 import javax.servlet.http.HttpServletRequest
 
@@ -17,7 +20,12 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("user")
 @CrossOrigin(origins = ["http://2.57.184.76", "http://192.168.1.7", "http://localhost:10888", "https://abbysoft.org", "http://abbysoft.org"])
 class UserController(@Autowired private val userService: UserService) {
+    companion object {
+        val log = LoggerFactory.getLogger(JwtUtils::class.java.name)
+    }
 
+    @Autowired
+    private lateinit var userRepository: UserRepository
     @Autowired
     private lateinit var authManager: AuthenticationManager
     @Autowired
@@ -33,7 +41,16 @@ class UserController(@Autowired private val userService: UserService) {
         val jwtString = jwtUtils.generateJwtToken(authentication)
 
         val details = authentication.principal as UserDetailsImpl
-        return ResponseEntity.ok(JwtResponse(jwtString, details.id, details.username, details.getEmail()))
+        val fullInfo = userRepository.findByName(details.username).get()
+        return ResponseEntity.ok(JwtResponse(jwtString, details.id, details.username, details.getEmail(), fullInfo.checks))
+    }
+
+    @PostMapping("confirm")
+    @ResponseBody
+    fun confirmRegistration(@RequestParam secret: String, @RequestParam email: String): ResponseEntity<Any> {
+        userService.confirmRegistration(secret, email)
+
+        return ResponseEntity.ok("confirmed")
     }
 
     @PostMapping("register")
@@ -53,18 +70,15 @@ class UserController(@Autowired private val userService: UserService) {
 
     private fun validateParameters(user: String?, password: String?, email: String?) {
         if (user == null || user.isBlank()) {
-            // TODO replace with logger
-            println("Blank data received: user ($user), password ($password), email ($email)")
+            log.info("Blank data received: user ($user), password ($password), email ($email)")
             throw ValidationException("Имя пользователя не может быть пустым", "user")
         }
         if (email == null || email.isBlank()) {
-            // TODO replace with logger
-            println("Blank data received: user ($user), password ($password), email ($email)")
+            log.info("Blank data received: user ($user), password ($password), email ($email)")
             throw ValidationException("Email не может быть пустым", "email")
         }
         if (password == null || password.isBlank()) {
-            // TODO replace with logger
-            println("Blank data received: user ($user), password ($password), email ($email)")
+            log.info("Blank data received: user ($user), password ($password), email ($email)")
             throw ValidationException("Пароль не может быть пустым", "password")
         }
     }

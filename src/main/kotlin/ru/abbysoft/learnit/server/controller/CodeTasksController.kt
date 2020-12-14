@@ -74,7 +74,7 @@ class CodeTasksController {
         val decoded = Base64.decode(trimmed)
 
         val userName = getUserNameFromAuthorization()
-        val file = File(installPath + "/tasks/$userName/${request.taskId}" + "__" + request.fileName)
+        val file = File("tasks/$userName/${request.taskId}" + "__" + request.fileName)
         file.parentFile.mkdirs()
         file.createNewFile()
 
