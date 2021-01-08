@@ -1,0 +1,5 @@
+curl
+-u {0}:{1}
+--request POST https://api.yookassa.ru/v3/payments
+--header Content-type:application/json
+--data {"amount":{"value":"{3}","currency":"RUB"},"capture":true,"confirmation":{"type":"redirect","return_url":"https://abbysoft.org/learnit/purchase_success"},"description":"Оплата_проверок_для_LearnIT"}
