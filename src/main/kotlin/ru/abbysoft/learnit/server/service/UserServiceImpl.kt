@@ -37,6 +37,7 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
     private lateinit var emailService: EmailService
 
     override fun confirmRegistration(secret: String, email: String) {
+        //initUserTable();
         val userInfo = userRepository.findByEmail(email).get()
         validateSecret(userInfo, secret)
 
@@ -46,6 +47,13 @@ class UserServiceImpl(private val userRepository: UserRepository) : UserService 
         userRepository.save(userInfo)
 
         log.info("Account ${userInfo.name} confirmed")
+    }
+
+    private fun initUserTable() {
+        log.info("Initialising user roles repository")
+        rolesRepository.save(UserRole(id = 0, role = EUserRole.BASIC))
+        rolesRepository.save(UserRole(id = 1, role = EUserRole.MODERATOR))
+        rolesRepository.save(UserRole(id = 2, role = EUserRole.ADMIN))
     }
 
     private fun validateSecret(userInfo: User, secret: String) {
